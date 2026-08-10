@@ -1,16 +1,42 @@
 services:
-
   app:
     build: .
     ports:
       - "3000:3000"
     depends_on:
       - mongo
+    environment:
+      # App connects using root admin for now
+      - MONGO_URL=mongodb://admin:secret123@mongo:27017/mydb?authSource=admin
 
   mongo:
     image: mongo:8
+    container_name: mongo
+    ports:
+      - "27017:27017"
     volumes:
       - mongo-data:/data/db
+    environment:
+      # Root admin credentials created at first startup
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=secret123
+      - MONGO_INITDB_DATABASE=mydb
+
+  mongo-express:
+    image: mongo-express:latest
+    ports:
+      - "8081:8081"
+    environment:
+      # Connect to MongoDB with admin credentials
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=secret123
+      - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
+      # Optional: control the web UI login prompt
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=secret123
 
 volumes:
   mongo-data:
+
